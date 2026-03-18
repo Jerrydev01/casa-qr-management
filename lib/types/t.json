@@ -1,0 +1,61 @@
+{
+  "user": {
+    "id": "ff39843f-634b-4059-b856-e6240e5f3a7d",
+    "aud": "authenticated",
+    "role": "authenticated",
+    "email": "francisjerry360@gmail.com",
+    "email_confirmed_at": "2026-03-10T08:47:53.641248Z",
+    "phone": "",
+    "confirmed_at": "2026-03-10T08:47:53.641248Z",
+    "last_sign_in_at": "2026-03-10T08:51:38.850386Z",
+    "app_metadata": { "provider": "email", "providers": ["email"] },
+    "user_metadata": {
+      "email": "francisjerry360@gmail.com",
+      "email_verified": true,
+      "full_name": "Casalavoro Chef",
+      "kitchen_id": "3e7d2577-0aa6-40cc-bbca-50b5d844040e",
+      "phone_verified": false,
+      "sub": "ff39843f-634b-4059-b856-e6240e5f3a7d"
+    },
+    "identities": [
+      {
+        "identity_id": "a6a091c8-a2da-4250-8685-126da32b2e27",
+        "id": "ff39843f-634b-4059-b856-e6240e5f3a7d",
+        "user_id": "ff39843f-634b-4059-b856-e6240e5f3a7d",
+        "identity_data": {
+          "email": "francisjerry360@gmail.com",
+          "email_verified": false,
+          "full_name": "Casalavoro Chef",
+          "kitchen_id": "3e7d2577-0aa6-40cc-bbca-50b5d844040e",
+          "phone_verified": false,
+          "sub": "ff39843f-634b-4059-b856-e6240e5f3a7d"
+        },
+        "provider": "email",
+        "last_sign_in_at": "2026-03-10T08:47:53.632767Z",
+        "created_at": "2026-03-10T08:47:53.632816Z",
+        "updated_at": "2026-03-10T08:47:53.632816Z",
+        "email": "francisjerry360@gmail.com"
+      }
+    ],
+    "created_at": "2026-03-10T08:47:53.597092Z",
+    "updated_at": "2026-03-10T08:51:38.853004Z",
+    "is_anonymous": false
+  },
+  "profile": {
+    "id": "ff39843f-634b-4059-b856-e6240e5f3a7d",
+    "email": "francisjerry360@gmail.com",
+    "full_name": "Casalavoro Chef",
+    "kitchen_id": "3e7d2577-0aa6-40cc-bbca-50b5d844040e",
+    "role": "admin",
+    "kitchen": {
+      "id": "3e7d2577-0aa6-40cc-bbca-50b5d844040e",
+      "name": "Cenare Wuse Kitchen",
+      "slug": "cenare-wuse-kitchen"
+    }
+  },
+  "sidebarUser": {
+    "name": "Casalavoro Chef",
+    "email": "francisjerry360@gmail.com",
+    "avatar": ""
+  }
+}

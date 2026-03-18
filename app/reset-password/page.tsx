@@ -1,4 +1,3 @@
-import { updatePassword } from "@/app/(auth)/actions/auth-actions";
 import {
   Card,
   CardContent,
@@ -6,9 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { FormSubmitButton } from "@/components/ui/form-submit-button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { ResetPasswordForm } from "@/forms/auth/reset-password-form";
 
 type ResetPasswordPageProps = {
   searchParams: Promise<{
@@ -31,33 +28,7 @@ export default async function ResetPasswordPage({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={updatePassword} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="password">New password</Label>
-              <Input id="password" name="password" type="password" required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm password</Label>
-              <Input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                required
-              />
-            </div>
-
-            {error ? (
-              <p className="text-sm text-destructive" role="alert">
-                {error}
-              </p>
-            ) : null}
-
-            <FormSubmitButton
-              className="w-full"
-              idleText="Update password"
-              pendingText="Updating password..."
-            />
-          </form>
+          <ResetPasswordForm externalError={error} />
         </CardContent>
       </Card>
     </main>

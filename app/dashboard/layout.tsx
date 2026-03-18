@@ -1,4 +1,8 @@
+import { AppSidebar } from "@/components/app-sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { redirectIfNotAuthenticated } from "@/lib/redirect/redirectIfNotAuthenticated";
+import { getCurrentUserProfile } from "@/lib/supabase/profile";
+import { redirect } from "next/navigation";
 
 export default async function DashboardLayout({
   children,
@@ -6,7 +10,17 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   await redirectIfNotAuthenticated();
+
+  const currentUserProfile = await getCurrentUserProfile("server");
+
+  if (!currentUserProfile) {
+    redirect("/login");
+  }
+
   return (
-    <main className="mx-auto w-full max-w-4xl p-4 md:p-6">{children}</main>
+    <SidebarProvider>
+      <AppSidebar user={currentUserProfile.profile ?? null} variant="inset" />
+      {children}
+    </SidebarProvider>
   );
 }
