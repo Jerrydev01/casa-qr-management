@@ -6,6 +6,9 @@ import { createActionClient } from "@/lib/supabase/action";
 import { getCurrentUserProfile } from "@/lib/supabase/profile";
 import { createClient } from "@/lib/supabase/server";
 import {
+  type BulkQRCodeImportError,
+  type BulkQRCodeImportResult,
+  type BulkQRCodeImportRowInput,
   type BusinessUnitInput,
   type BusinessUnitRecord,
   type DestinationTypeInput,
@@ -89,6 +92,8 @@ type DestinationTypeActionResult = {
   error?: string;
   destinationType?: DestinationTypeRecord;
 };
+
+type LookupTable = Map<string, string | null>;
 
 const qrCodeSelect = `
   id,
@@ -207,6 +212,86 @@ function normalizeName(name: string, fieldName: string) {
 function normalizeDescription(description?: string | null) {
   const trimmed = description?.trim();
   return trimmed ? trimmed : null;
+}
+
+function normalizeLookupKey(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function addLookupValue(
+  lookup: LookupTable,
+  rawKey: string,
+  resolvedValue: string,
+) {
+  const key = normalizeLookupKey(rawKey);
+
+  if (!key) {
+    return;
+  }
+
+  const existingValue = lookup.get(key);
+
+  if (existingValue && existingValue !== resolvedValue) {
+    lookup.set(key, null);
+    return;
+  }
+
+  if (!lookup.has(key)) {
+    lookup.set(key, resolvedValue);
+  }
+}
+
+function resolveLookupValue(
+  value: string,
+  lookup: LookupTable,
+  missingMessage: string,
+  ambiguousMessage: string,
+) {
+  const key = normalizeLookupKey(value);
+
+  if (!key) {
+    throw new Error(missingMessage);
+  }
+
+  if (!lookup.has(key)) {
+    throw new Error(missingMessage);
+  }
+
+  const resolvedValue = lookup.get(key);
+
+  if (!resolvedValue) {
+    throw new Error(ambiguousMessage);
+  }
+
+  return resolvedValue;
+}
+
+function buildBusinessUnitLookup(
+  businessUnits: Array<Pick<BusinessUnitRow, "id" | "name" | "slug">>,
+) {
+  const lookup: LookupTable = new Map();
+
+  businessUnits.forEach((businessUnit) => {
+    addLookupValue(lookup, businessUnit.id, businessUnit.id);
+    addLookupValue(lookup, businessUnit.slug, businessUnit.id);
+    addLookupValue(lookup, businessUnit.name, businessUnit.id);
+  });
+
+  return lookup;
+}
+
+function buildDestinationTypeLookup(
+  destinationTypes: Array<Pick<DestinationTypeRow, "id" | "name" | "slug">>,
+) {
+  const lookup: LookupTable = new Map();
+
+  destinationTypes.forEach((destinationType) => {
+    addLookupValue(lookup, destinationType.id, destinationType.slug);
+    addLookupValue(lookup, destinationType.slug, destinationType.slug);
+    addLookupValue(lookup, destinationType.name, destinationType.slug);
+  });
+
+  return lookup;
 }
 
 function normalizeReferenceSlug(slug: string, fieldName: string) {
@@ -471,6 +556,162 @@ export async function createQRCode(
   return {
     success: true,
     qrCode: mapQRCode(data as QRCodeRow),
+  };
+}
+
+export async function createBulkQRCodes(
+  input: BulkQRCodeImportRowInput[],
+): Promise<BulkQRCodeImportResult> {
+  const access = await ensureAdminAccess();
+
+  if (access.error) {
+    return {
+      success: false,
+      created: [],
+      errors: [],
+      totalRows: input.length,
+      createdCount: 0,
+      failedCount: input.length,
+      error: access.error,
+    };
+  }
+
+  const profile = access.profile;
+
+  if (!profile) {
+    return {
+      success: false,
+      created: [],
+      errors: [],
+      totalRows: input.length,
+      createdCount: 0,
+      failedCount: input.length,
+      error: "Unable to verify admin access.",
+    };
+  }
+
+  if (input.length === 0) {
+    return {
+      success: false,
+      created: [],
+      errors: [],
+      totalRows: 0,
+      createdCount: 0,
+      failedCount: 0,
+      error: "Provide at least one QR code row to import.",
+    };
+  }
+
+  const supabase = await createActionClient();
+  const [businessUnitResponse, destinationTypeResponse] = await Promise.all([
+    supabase
+      .from("business_units")
+      .select("id, name, slug")
+      .eq("is_active", true),
+    supabase
+      .from("destination_types")
+      .select("id, name, slug")
+      .eq("is_active", true),
+  ]);
+
+  if (businessUnitResponse.error || destinationTypeResponse.error) {
+    return {
+      success: false,
+      created: [],
+      errors: [],
+      totalRows: input.length,
+      createdCount: 0,
+      failedCount: input.length,
+      error:
+        businessUnitResponse.error?.message ??
+        destinationTypeResponse.error?.message ??
+        "Unable to load reference data for the import.",
+    };
+  }
+
+  const businessUnitLookup = buildBusinessUnitLookup(
+    (businessUnitResponse.data ?? []) as Array<
+      Pick<BusinessUnitRow, "id" | "name" | "slug">
+    >,
+  );
+  const destinationTypeLookup = buildDestinationTypeLookup(
+    (destinationTypeResponse.data ?? []) as Array<
+      Pick<DestinationTypeRow, "id" | "name" | "slug">
+    >,
+  );
+  const seenSlugs = new Set<string>();
+  const created: QRCodeRecord[] = [];
+  const errors: BulkQRCodeImportError[] = [];
+
+  for (const row of input) {
+    try {
+      const payload = validateQRCodeInput({
+        title: row.title,
+        slug: row.slug,
+        business_unit_id: resolveLookupValue(
+          row.business_unit,
+          businessUnitLookup,
+          "Select a valid active business unit for this row.",
+          "Business unit reference is ambiguous. Use the business unit slug or id.",
+        ),
+        destination_type: resolveLookupValue(
+          row.destination_type,
+          destinationTypeLookup,
+          "Select a valid active destination type for this row.",
+          "Destination type reference is ambiguous. Use the destination type slug or id.",
+        ),
+        destination_url: row.destination_url,
+        description: row.description,
+        is_active: row.is_active,
+      });
+
+      if (seenSlugs.has(payload.slug)) {
+        throw new Error("This batch already contains the same slug.");
+      }
+
+      seenSlugs.add(payload.slug);
+
+      const { data, error } = await supabase
+        .from("qr_codes")
+        .insert({
+          ...payload,
+          created_by: profile.id,
+          updated_by: profile.id,
+        })
+        .select(qrCodeSelect)
+        .single();
+
+      if (error) {
+        throw new Error(mapMutationError(error));
+      }
+
+      created.push(mapQRCode(data as QRCodeRow));
+    } catch (error) {
+      errors.push({
+        rowNumber: row.rowNumber,
+        title: row.title.trim(),
+        slug: row.slug.trim(),
+        error:
+          error instanceof Error ? error.message : "Unable to import this row.",
+      });
+    }
+  }
+
+  if (created.length > 0) {
+    revalidateManagementRoutes();
+  }
+
+  return {
+    success: created.length > 0,
+    created,
+    errors,
+    totalRows: input.length,
+    createdCount: created.length,
+    failedCount: errors.length,
+    error:
+      created.length === 0
+        ? (errors[0]?.error ?? "No QR codes were imported.")
+        : undefined,
   };
 }
 

@@ -9,15 +9,18 @@ type FormSubmitButtonProps = Omit<
 > & {
   idleText: string;
   pendingText?: string;
+  isPending?: boolean;
 };
 
 export function FormSubmitButton({
   idleText,
   pendingText = "Please wait...",
+  isPending: isPendingProp,
   disabled,
   ...props
 }: FormSubmitButtonProps) {
-  const { pending } = useFormStatus();
+  const { pending: formStatusPending } = useFormStatus();
+  const pending = isPendingProp ?? formStatusPending;
 
   return (
     <Button

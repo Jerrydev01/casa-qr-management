@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "tunnel": "ngrok http 3000 --domain=nonlarcenous-adelia-toxicological.ngrok-free.dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"

@@ -58,6 +58,34 @@ export type QRCodeInput = {
   is_active?: boolean;
 };
 
+export type BulkQRCodeImportRowInput = {
+  rowNumber: number;
+  title: string;
+  slug: string;
+  business_unit: string;
+  destination_type: string;
+  destination_url: string;
+  description?: string | null;
+  is_active?: boolean;
+};
+
+export type BulkQRCodeImportError = {
+  rowNumber: number;
+  title: string;
+  slug: string;
+  error: string;
+};
+
+export type BulkQRCodeImportResult = {
+  success: boolean;
+  created: QRCodeRecord[];
+  errors: BulkQRCodeImportError[];
+  totalRows: number;
+  createdCount: number;
+  failedCount: number;
+  error?: string;
+};
+
 export type UserProfile = {
   id: string;
   email: string;

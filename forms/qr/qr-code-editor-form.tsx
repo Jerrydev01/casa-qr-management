@@ -320,6 +320,7 @@ export function QRCodeEditorForm({
               <FormSubmitButton
                 className="text-white"
                 disabled={!canSubmit || isSubmitting}
+                isPending={isSubmitting}
                 idleText={qrCode ? "Save changes" : "Create QR code"}
                 pendingText={qrCode ? "Saving..." : "Creating..."}
               />
