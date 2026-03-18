@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
@@ -26,10 +28,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={inter.variable}>
+      <head>
+        <link rel="icon" type="image/png" href="/casalogo2.png" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <TooltipProvider>
+          {children}
+          <Toaster position="top-right" closeButton />
+        </TooltipProvider>
       </body>
     </html>
   );
