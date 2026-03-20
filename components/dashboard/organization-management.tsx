@@ -42,6 +42,7 @@ import {
   AddCircleHalfDotIcon,
   Delete02Icon,
   Edit02Icon,
+  Search01Icon,
   WorkflowCircle06Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -237,6 +238,19 @@ function ManagementSection<
   onToggle: (item: TItem) => void;
   onDelete: (item: TItem) => void;
 }) {
+  const [searchQuery, setSearchQuery] = React.useState("");
+
+  const filteredItems = React.useMemo(() => {
+    if (!searchQuery.trim()) return items;
+    const lower = searchQuery.toLowerCase();
+    return items.filter(
+      (item) =>
+        item.name.toLowerCase().includes(lower) ||
+        item.slug.toLowerCase().includes(lower) ||
+        (item.description && item.description.toLowerCase().includes(lower)),
+    );
+  }, [items, searchQuery]);
+
   return (
     <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -268,92 +282,109 @@ function ManagementSection<
         ) : null}
       </div>
 
-      <div className="mt-5 overflow-hidden rounded-xl border border-border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Slug</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {items.length === 0 ? (
+      <div className="mt-5 flex flex-col gap-4">
+        <div className="flex items-center group relative max-w-sm">
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={`Search ${title.toLowerCase()}...`}
+            className="pl-9 placeholder:text-sm text-base!"
+          />
+          <HugeiconsIcon
+            icon={Search01Icon}
+            className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors"
+          />
+        </div>
+
+        <div className="overflow-hidden rounded-xl border border-border">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell
-                  colSpan={5}
-                  className="py-10 text-center text-muted-foreground"
-                >
-                  No records found.
-                </TableCell>
+                <TableHead>Name</TableHead>
+                <TableHead>Slug</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ) : (
-              items.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.name}</TableCell>
-                  <TableCell>/{item.slug}</TableCell>
-                  <TableCell>
-                    <p className="max-w-md text-sm text-muted-foreground">
-                      {item.description || "No description provided."}
-                    </p>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={item.is_active ? "default" : "outline"}
-                      className={item.is_active ? "text-white" : ""}
-                    >
-                      {item.is_active ? "Active" : "Inactive"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex justify-end gap-2">
-                      {!readOnly ? (
-                        <>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => onToggle(item)}
-                          >
-                            {item.is_active ? "Deactivate" : "Activate"}
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon-sm"
-                            onClick={() => onEdit(item)}
-                            title={`Edit ${item.name}`}
-                          >
-                            <HugeiconsIcon
-                              icon={Edit02Icon}
-                              strokeWidth={2}
-                              className="size-4"
-                            />
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon-sm"
-                            onClick={() => onDelete(item)}
-                            title={`Delete ${item.name}`}
-                          >
-                            <HugeiconsIcon
-                              icon={Delete02Icon}
-                              strokeWidth={2}
-                              className="size-4"
-                            />
-                          </Button>
-                        </>
-                      ) : null}
-                    </div>
+            </TableHeader>
+            <TableBody>
+              {filteredItems.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={5}
+                    className="py-10 text-center text-muted-foreground"
+                  >
+                    {searchQuery.trim()
+                      ? `No ${title.toLowerCase()} found for "${searchQuery}"`
+                      : "No records found."}
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ) : (
+                filteredItems.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="font-medium">{item.name}</TableCell>
+                    <TableCell>/{item.slug}</TableCell>
+                    <TableCell>
+                      <p className="max-w-md text-sm text-muted-foreground">
+                        {item.description || "No description provided."}
+                      </p>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={item.is_active ? "default" : "outline"}
+                        className={item.is_active ? "text-white" : ""}
+                      >
+                        {item.is_active ? "Active" : "Inactive"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex justify-end gap-2">
+                        {!readOnly ? (
+                          <>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => onToggle(item)}
+                            >
+                              {item.is_active ? "Deactivate" : "Activate"}
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={() => onEdit(item)}
+                              title={`Edit ${item.name}`}
+                            >
+                              <HugeiconsIcon
+                                icon={Edit02Icon}
+                                strokeWidth={2}
+                                className="size-4"
+                              />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={() => onDelete(item)}
+                              title={`Delete ${item.name}`}
+                            >
+                              <HugeiconsIcon
+                                icon={Delete02Icon}
+                                strokeWidth={2}
+                                className="size-4"
+                              />
+                            </Button>
+                          </>
+                        ) : null}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </div>
   );
@@ -386,6 +417,9 @@ export function OrganizationManagement({
     | { kind: "destination-type"; item: DestinationTypeRecord }
     | null
   >(null);
+  const [activeTab, setActiveTab] = React.useState<
+    "business-units" | "destination-types"
+  >("business-units");
   const [isPending, startTransition] = React.useTransition();
   const isAdmin = profile?.role === "admin";
 
@@ -607,59 +641,100 @@ export function OrganizationManagement({
   return (
     <>
       <div className="flex flex-col gap-6">
-        <ManagementSection
-          actionLabel="New business unit"
-          count={businessUnits.length}
-          description="Create, rename, disable, and remove the company units that own QR assets."
-          icon={
-            <HugeiconsIcon
-              icon={WorkflowCircle06Icon}
-              strokeWidth={2}
-              className="size-4"
-            />
-          }
-          items={businessUnits}
-          onCreate={() => {
-            setEditingBusinessUnit(null);
-            setBusinessUnitDialogOpen(true);
-          }}
-          onDelete={(item) => setDeleteTarget({ kind: "business-unit", item })}
-          onEdit={(item) => {
-            setEditingBusinessUnit(item);
-            setBusinessUnitDialogOpen(true);
-          }}
-          onToggle={handleBusinessUnitToggle}
-          readOnly={!isAdmin}
-          title="Business units"
-        />
+        <div className="inline-flex h-11 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground w-full sm:w-fit mt-2">
+          <button
+            onClick={() => setActiveTab("business-units")}
+            className={`inline-flex items-center justify-center whitespace-nowrap rounded-md px-5 py-2 text-sm font-medium transition-all ${
+              activeTab === "business-units"
+                ? "bg-background text-foreground shadow-sm"
+                : "hover:bg-muted/50 text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Business units
+            <Badge
+              variant="secondary"
+              className="ml-2 rounded-full px-2 py-0.5 text-xs bg-muted text-muted-foreground"
+            >
+              {businessUnits.length}
+            </Badge>
+          </button>
+          <button
+            onClick={() => setActiveTab("destination-types")}
+            className={`inline-flex items-center justify-center whitespace-nowrap rounded-md px-5 py-2 text-sm font-medium transition-all ${
+              activeTab === "destination-types"
+                ? "bg-background text-foreground shadow-sm"
+                : "hover:bg-muted/50 text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Destination types
+            <Badge
+              variant="secondary"
+              className="ml-2 rounded-full px-2 py-0.5 text-xs bg-muted text-muted-foreground"
+            >
+              {destinationTypes.length}
+            </Badge>
+          </button>
+        </div>
 
-        <ManagementSection
-          actionLabel="New destination type"
-          count={destinationTypes.length}
-          description="Manage the QR categories the business can assign, such as menu, product, staff resource, and campaign."
-          icon={
-            <HugeiconsIcon
-              icon={WorkflowCircle06Icon}
-              strokeWidth={2}
-              className="size-4"
-            />
-          }
-          items={destinationTypes}
-          onCreate={() => {
-            setEditingDestinationType(null);
-            setDestinationTypeDialogOpen(true);
-          }}
-          onDelete={(item) =>
-            setDeleteTarget({ kind: "destination-type", item })
-          }
-          onEdit={(item) => {
-            setEditingDestinationType(item);
-            setDestinationTypeDialogOpen(true);
-          }}
-          onToggle={handleDestinationTypeToggle}
-          readOnly={!isAdmin}
-          title="Destination types"
-        />
+        {activeTab === "business-units" ? (
+          <ManagementSection
+            key="business-units"
+            actionLabel="New business unit"
+            count={businessUnits.length}
+            description="Create, rename, disable, and remove the company units that own QR assets."
+            icon={
+              <HugeiconsIcon
+                icon={WorkflowCircle06Icon}
+                strokeWidth={2}
+                className="size-4"
+              />
+            }
+            items={businessUnits}
+            onCreate={() => {
+              setEditingBusinessUnit(null);
+              setBusinessUnitDialogOpen(true);
+            }}
+            onDelete={(item) =>
+              setDeleteTarget({ kind: "business-unit", item })
+            }
+            onEdit={(item) => {
+              setEditingBusinessUnit(item);
+              setBusinessUnitDialogOpen(true);
+            }}
+            onToggle={handleBusinessUnitToggle}
+            readOnly={!isAdmin}
+            title="Business units"
+          />
+        ) : (
+          <ManagementSection
+            key="destination-types"
+            actionLabel="New destination type"
+            count={destinationTypes.length}
+            description="Manage the QR categories the business can assign, such as menu, product, staff resource, and campaign."
+            icon={
+              <HugeiconsIcon
+                icon={WorkflowCircle06Icon}
+                strokeWidth={2}
+                className="size-4"
+              />
+            }
+            items={destinationTypes}
+            onCreate={() => {
+              setEditingDestinationType(null);
+              setDestinationTypeDialogOpen(true);
+            }}
+            onDelete={(item) =>
+              setDeleteTarget({ kind: "destination-type", item })
+            }
+            onEdit={(item) => {
+              setEditingDestinationType(item);
+              setDestinationTypeDialogOpen(true);
+            }}
+            onToggle={handleDestinationTypeToggle}
+            readOnly={!isAdmin}
+            title="Destination types"
+          />
+        )}
       </div>
 
       <ReferenceEditorDialog
@@ -712,6 +787,7 @@ export function OrganizationManagement({
             ? "Delete business unit"
             : "Delete destination type"
         }
+        secondaryTitle={deleteTarget?.item.name}
         description={
           deleteTarget?.kind === "business-unit"
             ? "Delete this business unit only if it is no longer assigned to any QR code."

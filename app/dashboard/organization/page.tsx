@@ -18,13 +18,16 @@ export default async function OrganizationPage() {
   return (
     <SidebarInset>
       <SiteHeader title="Organization" />
-      <div className="flex flex-1 flex-col overflow-y-auto">
-        <div className="flex flex-1 flex-col gap-6 p-4 lg:p-6">
-          <div className="flex flex-col gap-2 px-1">
-            <h2 className="text-lg font-semibold">Reference data</h2>
-            <p className="max-w-3xl text-sm text-muted-foreground">
+      <div className="flex flex-1 flex-col overflow-y-auto bg-muted/20">
+        <div className="flex w-full max-w-6xl flex-1 flex-col gap-6 p-4 lg:p-8 mx-auto">
+          <div className="flex flex-col gap-2 px-1 border-b pb-6">
+            <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-foreground">
+              Organization Settings
+            </h1>
+            <p className="max-w-3xl text-base text-muted-foreground">
               Maintain the business units and destination types used throughout
-              the QR management system.
+              the QR management system. Configure definitions and status for
+              your organization's core reference data here.
             </p>
           </div>
           <OrganizationManagement

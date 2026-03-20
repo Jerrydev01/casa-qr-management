@@ -34,11 +34,13 @@ import {
 } from "@/lib/utils";
 import {
   BarChartIcon,
+  Cancel01Icon,
   Delete02Icon,
   Edit02Icon,
   EyeIcon,
   PlusSignIcon,
   QrCode01Icon,
+  Search01Icon,
   Wifi01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -321,21 +323,27 @@ export function QRManagement({
             </p>
           </div>
 
-          <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
-            <Input
-              className="min-w-60"
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search title, slug, unit, or destination"
-              value={search}
-            />
+          <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
+            <div className="flex items-center group relative w-full sm:w-auto sm:max-w-sm">
+              <Input
+                className="w-full sm:min-w-60 pl-9 text-base! placeholder:text-sm"
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search title, slug, unit..."
+                value={search}
+              />
+              <HugeiconsIcon
+                icon={Search01Icon}
+                className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors"
+              />
+            </div>
             <Select
               value={selectedBusinessUnit}
               onValueChange={(value) => setSelectedBusinessUnit(String(value))}
             >
-              <SelectTrigger className="w-full sm:w-52">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <span
                   className={cn(
-                    "flex flex-1 text-left text-sm",
+                    "flex flex-1 text-left text-sm whitespace-nowrap overflow-hidden text-ellipsis mr-2",
                     selectedBusinessUnit === "all" && "text-muted-foreground",
                   )}
                 >
@@ -361,10 +369,10 @@ export function QRManagement({
                 setSelectedDestinationType(String(value))
               }
             >
-              <SelectTrigger className="w-full sm:w-44">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <span
                   className={cn(
-                    "flex flex-1 text-left text-sm",
+                    "flex flex-1 text-left text-sm whitespace-nowrap overflow-hidden text-ellipsis mr-2",
                     selectedDestinationType === "all" &&
                       "text-muted-foreground",
                   )}
@@ -388,13 +396,36 @@ export function QRManagement({
                 ))}
               </SelectContent>
             </Select>
+
+            {(search ||
+              selectedBusinessUnit !== "all" ||
+              selectedDestinationType !== "all") && (
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setSearch("");
+                  setSelectedBusinessUnit("all");
+                  setSelectedDestinationType("all");
+                }}
+                className="h-10 px-3 text-muted-foreground hover:text-foreground"
+                title="Clear filters"
+              >
+                <HugeiconsIcon
+                  icon={Cancel01Icon}
+                  strokeWidth={2}
+                  className="size-4 mr-1"
+                />
+                Clear
+              </Button>
+            )}
+
             {isAdmin ? (
-              <>
+              <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
                 <Button
                   onClick={() => setBulkImportOpen(true)}
                   type="button"
                   variant="outline"
-                  className="shrink-0"
+                  className="flex-1 sm:flex-none"
                 >
                   Bulk create
                 </Button>
@@ -404,12 +435,16 @@ export function QRManagement({
                     setEditorOpen(true);
                   }}
                   type="button"
-                  className="shrink-0 text-white"
+                  className="flex-1 sm:flex-none text-white"
                 >
-                  <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} />
-                  New QR code
+                  <HugeiconsIcon
+                    icon={PlusSignIcon}
+                    strokeWidth={2}
+                    className="size-4"
+                  />
+                  New QR
                 </Button>
-              </>
+              </div>
             ) : null}
           </div>
         </div>
@@ -609,6 +644,7 @@ export function QRManagement({
         itemName={
           deletingQRCode?.slug ? `/${deletingQRCode.slug}` : "this QR code"
         }
+        secondaryTitle={deletingQRCode?.title}
         onConfirm={confirmDelete}
         onOpenChange={setDeleteModalOpen}
         open={deleteModalOpen}

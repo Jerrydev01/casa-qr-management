@@ -142,6 +142,20 @@ create index if not exists idx_business_units_created
 create index if not exists idx_destination_types_created
   on public.destination_types(created_at desc);
 
+create table if not exists public.scan_events (
+  id uuid primary key default gen_random_uuid(),
+  qr_code_id uuid not null references public.qr_codes(id) on delete cascade,
+  scanned_at timestamptz not null default now()
+);
+
+alter table public.scan_events enable row level security;
+
+create index if not exists idx_scan_events_scanned_at
+  on public.scan_events(scanned_at desc);
+
+create index if not exists idx_scan_events_qr_code_id
+  on public.scan_events(qr_code_id, scanned_at desc);
+
 create or replace function public.is_admin()
 returns boolean
 language sql
@@ -181,6 +195,9 @@ begin
     return;
   end if;
 
+  insert into public.scan_events (qr_code_id, scanned_at)
+  values (resolved_row.id, now());
+
   return query
   select
     resolved_row.id,
@@ -202,6 +219,8 @@ drop policy if exists "Admins full access destination_types" on public.destinati
 drop policy if exists "Staff read destination_types" on public.destination_types;
 drop policy if exists "Admins full access qr_codes" on public.qr_codes;
 drop policy if exists "Staff read qr_codes" on public.qr_codes;
+drop policy if exists "Admins full access scan_events" on public.scan_events;
+drop policy if exists "Staff read scan_events" on public.scan_events;
 
 create policy "Users read own profile"
 on public.profiles for select to authenticated
@@ -242,6 +261,15 @@ with check (public.is_admin());
 
 create policy "Staff read qr_codes"
 on public.qr_codes for select to authenticated
+using (true);
+
+create policy "Admins full access scan_events"
+on public.scan_events for all to authenticated
+using (public.is_admin())
+with check (public.is_admin());
+
+create policy "Staff read scan_events"
+on public.scan_events for select to authenticated
 using (true);
 
 create or replace function public.handle_new_user()
