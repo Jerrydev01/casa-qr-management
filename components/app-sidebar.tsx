@@ -66,11 +66,10 @@ export function AppSidebar({
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              className="data-[slot=sidebar-menu-button]:p-1.5! mt-3 lg:mt-0 "
+              className="data-[slot=sidebar-menu-button]:p-1.5! mt-3 lg:mt-0 h-auto"
               render={<Link href="/dashboard" />}
               onClick={closeMobileSidebar}
             >
-              {/* <HugeiconsIcon icon={CommandIcon} strokeWidth={2} className="size-5!" /> */}
               <Image
                 src="/casalavoro-logo.png"
                 alt="Casalavoro Logo"
